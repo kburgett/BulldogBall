@@ -40,6 +40,75 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Variables
     var grids = true
     
+    var background = SKSpriteNode(imageNamed: "")
+    var basketFront = SKSpriteNode(imageNamed: "FrontBasket")
+    var basketBack = SKSpriteNode(imageNamed: "Backboard")
+    var basketball = SKSpriteNode(imageNamed: "Basketball")
+    
+    var ball = SKShapeNode()
+    var leftNet = SKShapeNode()
+    var rightNet = SKShapeNode()
+    var base = SKShapeNode()
+    var startG = SKShapeNode()      // Ground that basket exists on
+    var endG = SKShapeNode()        // Ground where the basketball sits on
+    
+    var pi = CGFloat(M_PI)
+    var touchingBall = false
+    
+    override func didMove(to view: SKView) {
+        self.physicsWorld.contactDelegate = self
+        
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            Constants.gravity = -6
+            Constants.yVal = self.frame.height / 4
+            Constants.airTime = 2
+        } else {
+            // iPad graphics
+        }
+        
+        physicsWorld.gravity = CGVector(dx: 0, dy: Constants.gravity)
+        
+        setUpGame()
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let location = touch.location(in: self)
+            if GameState.current == .playing {
+                if ball.contains(location) {
+                    TouchPoints.start = location
+                    touchingBall = true
+                }
+            }
+        }
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let location = touch.location(in: self)
+            if GameState.current == .playing  && !ball.contains(location) && touchingBall {
+                TouchPoints.end = location
+                touchingBall = false
+                fire()
+            }
+        }
+    }
+    
+    func setUpGame() {
+        GameState.current = .playing
+    }
+    
+    func fire() {
+        
+    }
+}
+
+
+
+
+
+
+
 //
 //    private var label : SKLabelNode?
 //    private var spinnyNode : SKShapeNode?
@@ -116,4 +185,3 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 //    override func update(_ currentTime: TimeInterval) {
 //        // Called before each frame is rendered
 //    }
-}
