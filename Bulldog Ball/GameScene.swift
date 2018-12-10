@@ -1,10 +1,5 @@
 //
 //  GameScene.swift
-//  PaperToss
-//
-//  Created by Michael Fischer on 11/26/18.
-//  Copyright © 2018 Ellis Fischer. All rights reserved.
-//
 
 import SpriteKit
 import GameplayKit
@@ -63,7 +58,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     override func didMove(to view: SKView) {
         self.physicsWorld.contactDelegate = self
         if UIDevice.current.userInterfaceIdiom == .phone{
-            Constants.gravity = -6.5
+            Constants.gravity = -4
             Constants.yVelocity = self.frame.height / 3
             Constants.airTime = 1.5
         }else{
@@ -257,7 +252,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         ball.physicsBody?.applyImpulse(throwVec, at: Touch.start)
         
         // Shrink
-        ball.run(SKAction.scale(by: 0.6, duration: Constants.airTime))
+        ball.run(SKAction.scale(by: 0.5, duration: Constants.airTime))
         
         // Change Collison BitMask
         let wait = SKAction.wait(forDuration: Constants.airTime / 2)
