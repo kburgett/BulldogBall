@@ -1,6 +1,5 @@
 //
 //  GameViewController.swift
-//  PaperToss
 
 import UIKit
 import SpriteKit

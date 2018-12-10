@@ -35,7 +35,7 @@ struct Constants {
 
 class GameScene: SKScene, SKPhysicsContactDelegate{
     // Variables
-    var grids = false
+    var grids = true
     var background = SKSpriteNode(imageNamed: "Background")
     var backboard = SKSpriteNode(imageNamed: "Backboard - No Net")
     var rimFront = SKSpriteNode(imageNamed: "RimFront")
@@ -185,7 +185,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         base = SKShapeNode(rectOf: CGSize(width: rimFront.frame.width / 2, height: 3))
         base.fillColor = .red
         base.strokeColor = .clear
-        base.position = CGPoint(x: rimFront.position.x,  y: rimFront.position.y)
+        base.position = CGPoint(x: rimFront.position.x,  y: rimFront.position.y - rimFront.size.height / 2)
         base.zPosition = 10
         base.alpha = grids ? 1 : 0
         base.physicsBody = SKPhysicsBody(rectangleOf: rightWall.frame.size)
