@@ -1,6 +1,10 @@
 //
 //  GameScene.swift
 //  PaperToss
+//
+//  Created by Michael Fischer on 11/26/18.
+//  Copyright © 2018 Ellis Fischer. All rights reserved.
+//
 
 import SpriteKit
 import GameplayKit
@@ -10,6 +14,7 @@ enum GameState {
     static var current = GameState.playing
 }
 
+// Physics Category
 struct PhysicsCategory {
     static let none: UInt32 = 0x1 << 0
     static let ball: UInt32 = 0x1 << 1
@@ -35,18 +40,19 @@ struct Constants {
 
 class GameScene: SKScene, SKPhysicsContactDelegate{
     // Variables
-    var grids = true
+    var grids = false
     var background = SKSpriteNode(imageNamed: "Background")
-    var basketFront = SKSpriteNode(imageNamed: "Net")
-    var basketBack = SKSpriteNode(imageNamed: "Backboard")
+    var backboard = SKSpriteNode(imageNamed: "Backboard - No Net")
+    var rimFront = SKSpriteNode(imageNamed: "RimFront")
+    var rimBack = SKSpriteNode(imageNamed: "RimBack")
     var basketball = SKSpriteNode(imageNamed: "Basketball")
     
     var ball = SKShapeNode()
     var leftWall = SKShapeNode()
     var rightWall = SKShapeNode()
-    var rim = SKShapeNode()
-    var endGround = SKShapeNode()       // The ground the basket exists
-    var startGround = SKShapeNode()     // Where the paper ball starts
+    var base = SKShapeNode()
+    var endGround = SKShapeNode()    // The ground the basket at the back of the court
+    var startGround = SKShapeNode()  // Where the basketball starts
     
     var windLabel = SKLabelNode()
     
@@ -57,12 +63,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     override func didMove(to view: SKView) {
         self.physicsWorld.contactDelegate = self
         if UIDevice.current.userInterfaceIdiom == .phone{
-            Constants.gravity = -6
-            Constants.yVelocity = self.frame.height / 4
+            Constants.gravity = -6.5
+            Constants.yVelocity = self.frame.height / 3
             Constants.airTime = 1.5
         }else{
             //iPad
         }
+        
         physicsWorld.gravity = CGVector(dx: 0, dy: Constants.gravity)
         setUpGame()
         
@@ -81,35 +88,43 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         for touch in touches {
             let location = touch.location(in: self)
             if GameState.current == .playing && !ball.contains(location){
-                    Touch.end = location
-                    touchingBall = false
-                    fire()
+                Touch.end = location
+                touchingBall = false
+                fire()
             }
         }
     }
     func setUpGame() {
         GameState.current = .playing
-        let backgroundScale = CGFloat(background.frame.width / background.frame.height) // eg 1.4 as scale
+        let bgScale = CGFloat(background.frame.width / background.frame.height) // eg 1.4 as scale
         background.size.height = self.frame.height
-        background.size.width = background.size.height * backgroundScale
+        background.size.width = background.size.height * bgScale
         background.position = CGPoint(x: self.frame.width/2, y: self.frame.height/2)
         background.zPosition = 0
         
         self.addChild(background)
         
-        let basketScale = CGFloat(basketBack.frame.width / basketBack.frame.height)
-        basketBack.size.height = self.frame.height / 9
-        basketBack.size.width = basketBack.size.height * basketScale
-        basketBack.position = CGPoint(x: self.frame.width / 2, y: 2 * self.frame.height / 3)
-        basketBack.zPosition = background.zPosition + 1
+        let boardScale = CGFloat(backboard.frame.width / backboard.frame.height)
+        backboard.size.height = self.frame.height / 4
+        backboard.size.width = backboard.size.height * boardScale
+        backboard.position = CGPoint(x: self.frame.width/2, y: 2*self.frame.height/3 + 1*self.backboard.size.height/4)
+        backboard.zPosition = background.zPosition + 1
         
-        self.addChild(basketBack)
+        self.addChild(backboard)
         
-        basketFront.size = basketBack.size
-        basketFront.position = basketBack.position
-        basketFront.zPosition = basketBack.zPosition + 3
+        let binScale = CGFloat(rimBack.frame.width / rimBack.frame.height)
+        rimBack.size.height = self.frame.height / 9
+        rimBack.size.width = rimBack.size.height * binScale
+        rimBack.position = CGPoint(x: self.frame.width/2, y: 2*self.frame.height/3)
+        rimBack.zPosition = background.zPosition + 2
         
-        self.addChild(basketFront)
+        self.addChild(rimBack)
+        
+        rimFront.size = rimBack.size
+        rimFront.position = rimBack.position
+        rimFront.zPosition = rimBack.zPosition + 3
+        
+        self.addChild(rimFront)
         
         startGround = SKShapeNode(rectOf: CGSize(width: self.frame.width, height: 5))
         startGround.fillColor = .red
@@ -129,7 +144,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         endGround = SKShapeNode(rectOf: CGSize(width: self.frame.width * 2, height: 5))
         endGround.fillColor = .red
         endGround.strokeColor = .clear
-        endGround.position = CGPoint(x: self.frame.width / 2, y: 2 * self.frame.height / 3 - basketFront.frame.height / 2)
+        endGround.position = CGPoint(x: self.frame.width / 2, y: self.frame.height / 3 - rimFront.frame.height / 2)
         endGround.zPosition = 10
         endGround.alpha = grids ? 1 : 0
         endGround.physicsBody = SKPhysicsBody(rectangleOf: endGround.frame.size)
@@ -141,10 +156,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
         self.addChild(endGround)
         
-        leftWall = SKShapeNode(rectOf: CGSize(width: 3, height: basketFront.frame.height / 2))
+        leftWall = SKShapeNode(rectOf: CGSize(width: 3, height: rimFront.frame.height / 1.6))
         leftWall.fillColor = .red
         leftWall.strokeColor = .clear
-        leftWall.position = CGPoint(x: basketFront.position.x - basketFront.frame.width / 2.5,  y: basketFront.position.y)
+        leftWall.position = CGPoint(x: rimFront.position.x - rimFront.frame.width / 2.5,  y: rimFront.position.y)
         leftWall.zPosition = 10
         leftWall.alpha = grids ? 1 : 0
         leftWall.physicsBody = SKPhysicsBody(rectangleOf: leftWall.frame.size)
@@ -156,10 +171,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         leftWall.zRotation =  pi / 25
         self.addChild(leftWall)
         
-        rightWall = SKShapeNode(rectOf: CGSize(width: 3, height: basketFront.frame.height / 2))
+        rightWall = SKShapeNode(rectOf: CGSize(width: 3, height: rimFront.frame.height / 1.6))
         rightWall.fillColor = .red
         rightWall.strokeColor = .clear
-        rightWall.position = CGPoint(x: basketFront.position.x + basketFront.frame.width / 2.5,  y: basketFront.position.y)
+        rightWall.position = CGPoint(x: rimFront.position.x + rimFront.frame.width / 2.5,  y: rimFront.position.y)
         rightWall.zPosition = 10
         rightWall.alpha = grids ? 1 : 0
         rightWall.physicsBody = SKPhysicsBody(rectangleOf: rightWall.frame.size)
@@ -172,23 +187,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
         self.addChild(rightWall)
         
-        rim = SKShapeNode(rectOf: CGSize(width: basketFront.frame.width / 2, height: 3))
-        rim.fillColor = .red
-        rim.strokeColor = .clear
-        rim.position = CGPoint(x: basketFront.position.x,  y: basketFront.position.y - basketFront.frame.height / 4)
-        rim.zPosition = 10
-        rim.alpha = grids ? 1 : 0
-        rim.physicsBody = SKPhysicsBody(rectangleOf: rightWall.frame.size)
-        rim.physicsBody?.categoryBitMask = PhysicsCategory.base
-        rim.physicsBody?.collisionBitMask = PhysicsCategory.ball
-        rim.physicsBody?.contactTestBitMask = PhysicsCategory.ball
-        rim.physicsBody?.affectedByGravity = false
-        rim.physicsBody?.isDynamic = false
-
-        self.addChild(rim)
+        base = SKShapeNode(rectOf: CGSize(width: rimFront.frame.width / 2, height: 3))
+        base.fillColor = .red
+        base.strokeColor = .clear
+        base.position = CGPoint(x: rimFront.position.x,  y: rimFront.position.y)
+        base.zPosition = 10
+        base.alpha = grids ? 1 : 0
+        base.physicsBody = SKPhysicsBody(rectangleOf: rightWall.frame.size)
+        base.physicsBody?.categoryBitMask = PhysicsCategory.base
+        base.physicsBody?.collisionBitMask = PhysicsCategory.ball
+        base.physicsBody?.contactTestBitMask = PhysicsCategory.ball
+        base.physicsBody?.affectedByGravity = false
+        base.physicsBody?.isDynamic = false
+        
+        self.addChild(base)
         
         windLabel.text = "Wind = 0"
-        windLabel.position = CGPoint(x: self.frame.width / 2, y: self.frame.height * 4 / 5)
+        windLabel.position = CGPoint(x: self.frame.width / 2, y: 8 * self.frame.height / 9)
         windLabel.fontSize = self.frame.width / 10
         windLabel.zPosition = background.zRotation + 1
         
@@ -204,7 +219,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
         ball.setScale(1)
         
-        ball = SKShapeNode(circleOfRadius: basketFront.frame.width / 1.5)
+        ball = SKShapeNode(circleOfRadius: rimFront.frame.width / 1.5)
         ball.fillColor = grids ?  .blue : .clear
         ball.strokeColor = .clear
         ball.position = CGPoint(x: self.frame.width / 2,  y: startGround.position.y + ball.frame.height)
@@ -224,6 +239,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     }
     
     func setWind() {
+        
         let multi = CGFloat(50)
         let rnd = CGFloat(arc4random_uniform(UInt32(10))) - 5
         windLabel.text = "Wind: \(rnd)"
@@ -231,20 +247,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     }
     
     func fire() {
-         
         let xChange = Touch.end.x - Touch.start.x
         
         let angle = (atan(xChange / (Touch.end.y - Touch.start.y)) * 180 / pi)
         let amendedX = (tan(angle * pi / 180) * Constants.yVelocity) * 0.5
         
-        // Throw it
+        // Throw It
         let throwVec = CGVector(dx: amendedX, dy: Constants.yVelocity)
         ball.physicsBody?.applyImpulse(throwVec, at: Touch.start)
         
-        // Shrink into distance
-        ball.run(SKAction.scale(by: 0.3, duration: Constants.airTime))
+        // Shrink
+        ball.run(SKAction.scale(by: 0.6, duration: Constants.airTime))
         
-        //change collison bitMask
+        // Change Collison BitMask
         let wait = SKAction.wait(forDuration: Constants.airTime / 2)
         let changeCollision = SKAction.run({
             self.ball.physicsBody?.collisionBitMask = PhysicsCategory.startG | PhysicsCategory.endG | PhysicsCategory.base | PhysicsCategory.lBasket | PhysicsCategory.rBasket
@@ -253,13 +268,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         self.run(SKAction.sequence([wait,changeCollision]))
         
         // Add Wind
-        let windWait = SKAction.wait(forDuration: Constants.airTime / 3)
+        let windWait = SKAction.wait(forDuration: Constants.airTime / 4)
         let push = SKAction.applyImpulse(CGVector(dx: wind, dy: 0), duration: 1)
         ball.run(SKAction.sequence([wait,push]))
-        
         self.run(SKAction.sequence([wait,changeCollision]))
-         
-        // Wait and Reset
+        
+        // Wait and reset
         let wait3 = SKAction.wait(forDuration: 3)
         let reset = SKAction.run({
             self.setWind()
