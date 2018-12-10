@@ -1,13 +1,10 @@
 //
 //  AppDelegate.swift
-//  Bulldog Ball
-//
-//  Created by Kristen and Claire on 11/25/18.
-//  Copyright © 2018 Kristen Burgett. All rights reserved.
-//
+//  PaperToss
+
 
 import UIKit
-
+  
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 

@@ -1,15 +1,11 @@
 //
 //  GameViewController.swift
-//  Bulldog Ball
-//
-//  Created by Kristen and Claire on 11/25/18.
-//  Copyright © 2018 Kristen Burgett. All rights reserved.
-//
+//  PaperToss
 
 import UIKit
 import SpriteKit
 import GameplayKit
-
+ 
 class GameViewController: UIViewController {
 
     override func viewDidLoad() {
@@ -25,11 +21,6 @@ class GameViewController: UIViewController {
                 // Present the scene
                 view.presentScene(scene)
             }
-            
-            view.ignoresSiblingOrder = true
-            
-            view.showsFPS = true
-            view.showsNodeCount = true
         }
     }
 
@@ -39,12 +30,12 @@ class GameViewController: UIViewController {
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         if UIDevice.current.userInterfaceIdiom == .phone {
-            return .allButUpsideDown
+            return .portrait
         } else {
-            return .all
+            return .portrait
         }
     }
-
+    
     override var prefersStatusBarHidden: Bool {
         return true
     }
