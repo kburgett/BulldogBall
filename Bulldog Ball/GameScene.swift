@@ -109,7 +109,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
         let binScale = CGFloat(rimBack.frame.width / rimBack.frame.height)
         rimBack.size.height = self.frame.height / 9
-        rimBack.size.width = rimBack.size.height * binScale
+        rimBack.size.width = rimBack.size.height * binScale 
         rimBack.position = CGPoint(x: self.frame.width/2, y: 2*self.frame.height/3)
         rimBack.zPosition = background.zPosition + 2
         
