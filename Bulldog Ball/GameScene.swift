@@ -105,7 +105,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         backboard.position = CGPoint(x: self.frame.width/2, y: 2*self.frame.height/3 + 1*self.backboard.size.height/4)
         backboard.zPosition = background.zPosition + 1
         
-        self.addChild(backboard)
+        self.addChild(backboard) 
         
         let binScale = CGFloat(rimBack.frame.width / rimBack.frame.height)
         rimBack.size.height = self.frame.height / 9
