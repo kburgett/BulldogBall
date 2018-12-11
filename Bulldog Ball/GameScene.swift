@@ -35,7 +35,7 @@ struct Constants {
 
 class GameScene: SKScene, SKPhysicsContactDelegate{
     // Variables
-    var grids = true
+    var grids = false
     var background = SKSpriteNode(imageNamed: "Background")
     var backboard = SKSpriteNode(imageNamed: "Backboard - No Net")
     var rimFront = SKSpriteNode(imageNamed: "RimFront")
@@ -49,7 +49,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     var endGround = SKShapeNode()    // The ground the basket at the back of the court
     var startGround = SKShapeNode()  // Where the basketball starts
     
-    var windLabel = SKLabelNode()
+    var uproarLabel = SKLabelNode()
     
     var pi = CGFloat(Double.pi)
     var wind = CGFloat()
@@ -195,16 +195,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         base.physicsBody?.affectedByGravity = false
         base.physicsBody?.isDynamic = false
         
-        self.addChild(base)
+        //self.addChild(base)
         
-        windLabel.text = "Wind = 0"
-        windLabel.position = CGPoint(x: self.frame.width / 2, y: 8 * self.frame.height / 9)
-        windLabel.fontSize = self.frame.width / 10
-        windLabel.zPosition = background.zRotation + 1
+        uproarLabel.text = "UPROAR = 0"
+        uproarLabel.position = CGPoint(x: self.frame.width / 2, y: 8 * self.frame.height / 9)
+        uproarLabel.fontSize = self.frame.width / 10
+        uproarLabel.zPosition = background.zRotation + 1
         
-        self.addChild(windLabel)
+        self.addChild(uproarLabel)
         
-        setWind()
+        setUproar()
         setBall()
     }
     
@@ -233,11 +233,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         self.addChild(ball)
     }
     
-    func setWind() {
+    func setUproar() {
         
         let multi = CGFloat(50)
         let rnd = CGFloat(arc4random_uniform(UInt32(10))) - 5
-        windLabel.text = "Wind: \(rnd)"
+        uproarLabel.text = "UPROAR: \(rnd)"
         wind = rnd * multi
     }
     
@@ -262,8 +262,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         })
         self.run(SKAction.sequence([wait,changeCollision]))
         
-        // Add Wind
-        let windWait = SKAction.wait(forDuration: Constants.airTime / 4)
+        // Add Uproar
+        let ballWait = SKAction.wait(forDuration: Constants.airTime / 4)
         let push = SKAction.applyImpulse(CGVector(dx: wind, dy: 0), duration: 1)
         ball.run(SKAction.sequence([wait,push]))
         self.run(SKAction.sequence([wait,changeCollision]))
@@ -271,7 +271,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         // Wait and reset
         let wait3 = SKAction.wait(forDuration: 3)
         let reset = SKAction.run({
-            self.setWind()
+            self.setUproar()
             self.setBall()
         })
         self.run(SKAction.sequence([wait3,reset]))
