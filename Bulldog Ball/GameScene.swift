@@ -4,11 +4,6 @@
 import SpriteKit
 import GameplayKit
 
-enum GameState {
-    case playing, menu
-    static var current = GameState.playing
-}
-
 // Physics Category
 struct PhysicsCategory {
     static let none: UInt32 = 0x1 << 0
@@ -34,14 +29,20 @@ struct Constants {
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate{
-    // Variables
+    // Global Variables
     var grids = false
+    var pi = CGFloat(Double.pi)
+    var wind = CGFloat()
+    var touchingBall = false
+    
+    // Set up SpriteNodes to hold image values
     var background = SKSpriteNode(imageNamed: "Background")
     var backboard = SKSpriteNode(imageNamed: "Backboard - No Net")
     var rimFront = SKSpriteNode(imageNamed: "RimFront")
     var rimBack = SKSpriteNode(imageNamed: "RimBack")
     var basketball = SKSpriteNode(imageNamed: "Basketball")
     
+    // Set up ShapeNodes to hold barriers 
     var ball = SKShapeNode()
     var leftWall = SKShapeNode()
     var rightWall = SKShapeNode()
@@ -49,81 +50,74 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     var endGround = SKShapeNode()    // The ground the basket at the back of the court
     var startGround = SKShapeNode()  // Where the basketball starts
     
+    // Label used to manage "Uproar" level that drives ball curve 
     var uproarLabel = SKLabelNode()
     
-    var pi = CGFloat(Double.pi)
-    var wind = CGFloat()
-    var touchingBall = false
-    
+    // Initial set up of game to begin
     override func didMove(to view: SKView) {
         self.physicsWorld.contactDelegate = self
-        if UIDevice.current.userInterfaceIdiom == .phone{
-            Constants.gravity = -4
-            Constants.yVelocity = self.frame.height / 3
-            Constants.airTime = 1.5
-        }else{
-            //iPad
-        }
-        
         physicsWorld.gravity = CGVector(dx: 0, dy: Constants.gravity)
-        setUpGame()
         
+        Constants.gravity = -4
+        Constants.yVelocity = self.frame.height / 3
+        Constants.airTime = 1.5
+        
+        setUpGame()        
     }
+    // Start of gesture to trace ball path 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
             let location = touch.location(in: self)
-            if GameState.current == .playing{
-                if ball.contains(location){
+            if ball.contains(location){
                     Touch.start = location
-                }
             }
         }
     }
+    // End of gesture tracing ball path 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
             let location = touch.location(in: self)
-            if GameState.current == .playing && !ball.contains(location){
+            if !ball.contains(location){
                 Touch.end = location
-                touchingBall = false
+                touchingBall = false        // Completion of gesture; signal ball to trace path made with gesture
                 fire()
             }
         }
     }
+    
     func setUpGame() {
-        GameState.current = .playing
-        let bgScale = CGFloat(background.frame.width / background.frame.height) // eg 1.4 as scale
+        // Initialize Background Image
+        let bgScale = CGFloat(background.frame.width / background.frame.height)
         background.size.height = self.frame.height
         background.size.width = background.size.height * bgScale
         background.position = CGPoint(x: self.frame.width/2, y: self.frame.height/2)
         background.zPosition = 0
-        
         self.addChild(background)
         
+        // Initialize backboard image as end "wall" for ball depth 
         let boardScale = CGFloat(backboard.frame.width / backboard.frame.height)
         backboard.size.height = self.frame.height / 4
         backboard.size.width = backboard.size.height * boardScale
         backboard.position = CGPoint(x: self.frame.width/2, y: 2*self.frame.height/3 + 1*self.backboard.size.height/4)
         backboard.zPosition = background.zPosition + 1
-        
         self.addChild(backboard) 
         
         let binScale = CGFloat(rimBack.frame.width / rimBack.frame.height)
+        // Establish Node opening of rim for ball to fall through 
         rimBack.size.height = self.frame.height / 9
         rimBack.size.width = rimBack.size.height * binScale 
         rimBack.position = CGPoint(x: self.frame.width/2, y: 2*self.frame.height/3)
         rimBack.zPosition = background.zPosition + 2
-        
         self.addChild(rimBack)
-        
+        // Establish front netting of net for ball to fall through 
         rimFront.size = rimBack.size
         rimFront.position = rimBack.position
         rimFront.zPosition = rimBack.zPosition + 3
-        
         self.addChild(rimFront)
         
+        // Create "floor" for ball to rest on at start of turn 
         startGround = SKShapeNode(rectOf: CGSize(width: self.frame.width, height: 5))
         startGround.fillColor = .red
-        startGround.strokeColor = .clear
         startGround.position = CGPoint(x: self.frame.width / 2, y: self.frame.height / 10)
         startGround.zPosition = 10
         startGround.alpha = grids ? 1 : 0
@@ -133,12 +127,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         startGround.physicsBody?.contactTestBitMask = PhysicsCategory.none
         startGround.physicsBody?.affectedByGravity = false
         startGround.physicsBody?.isDynamic = false
-        
         self.addChild(startGround)
         
+        // Create "floor" for basket exist on in the top third of screen 
         endGround = SKShapeNode(rectOf: CGSize(width: self.frame.width * 2, height: 5))
         endGround.fillColor = .red
-        endGround.strokeColor = .clear
         endGround.position = CGPoint(x: self.frame.width / 2, y: self.frame.height / 3 - rimFront.frame.height / 2)
         endGround.zPosition = 10
         endGround.alpha = grids ? 1 : 0
@@ -148,12 +141,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         endGround.physicsBody?.contactTestBitMask = PhysicsCategory.none
         endGround.physicsBody?.affectedByGravity = false
         endGround.physicsBody?.isDynamic = false
-        
         self.addChild(endGround)
         
+        // Create rectangle ShapeNode to follow left side of netting 
         leftWall = SKShapeNode(rectOf: CGSize(width: 3, height: rimFront.frame.height / 1.6))
         leftWall.fillColor = .red
-        leftWall.strokeColor = .clear
         leftWall.position = CGPoint(x: rimFront.position.x - rimFront.frame.width / 2.5,  y: rimFront.position.y)
         leftWall.zPosition = 10
         leftWall.alpha = grids ? 1 : 0
@@ -166,9 +158,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         leftWall.zRotation =  pi / 25
         self.addChild(leftWall)
         
+        // Create rectangle ShapeNode to follow right side of netting 
         rightWall = SKShapeNode(rectOf: CGSize(width: 3, height: rimFront.frame.height / 1.6))
         rightWall.fillColor = .red
-        rightWall.strokeColor = .clear
         rightWall.position = CGPoint(x: rimFront.position.x + rimFront.frame.width / 2.5,  y: rimFront.position.y)
         rightWall.zPosition = 10
         rightWall.alpha = grids ? 1 : 0
@@ -179,7 +171,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         rightWall.physicsBody?.affectedByGravity = false
         rightWall.physicsBody?.isDynamic = false
         rightWall.zRotation =  -pi / 25
-        
         self.addChild(rightWall)
         
         base = SKShapeNode(rectOf: CGSize(width: rimFront.frame.width / 2, height: 3))
@@ -194,24 +185,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         base.physicsBody?.contactTestBitMask = PhysicsCategory.ball
         base.physicsBody?.affectedByGravity = false
         base.physicsBody?.isDynamic = false
-        
         //self.addChild(base)
         
+        // Display Uproar Dynamic 
         uproarLabel.text = "UPROAR = 0"
         uproarLabel.position = CGPoint(x: self.frame.width / 2, y: 8 * self.frame.height / 9)
         uproarLabel.fontSize = self.frame.width / 10
         uproarLabel.zPosition = background.zRotation + 1
-        
         self.addChild(uproarLabel)
         
+        // Apply Uproar Dynamic
         setUproar()
+        // Generate Ball
         setBall()
     }
     
     func setBall() {
         basketball.removeFromParent()
         ball.removeFromParent()
-        
         ball.setScale(1)
         
         ball = SKShapeNode(circleOfRadius: rimFront.frame.width / 1.5)
@@ -247,11 +238,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         let angle = (atan(xChange / (Touch.end.y - Touch.start.y)) * 180 / pi)
         let amendedX = (tan(angle * pi / 180) * Constants.yVelocity) * 0.5
         
-        // Throw It
+        // Physics Throw of Ball 
         let throwVec = CGVector(dx: amendedX, dy: Constants.yVelocity)
         ball.physicsBody?.applyImpulse(throwVec, at: Touch.start)
         
-        // Shrink
+        // Shrink Ball in distance 
         ball.run(SKAction.scale(by: 0.5, duration: Constants.airTime))
         
         // Change Collison BitMask
