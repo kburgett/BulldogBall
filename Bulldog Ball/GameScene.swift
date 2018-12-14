@@ -1,4 +1,10 @@
-//
+//  Tutorials: 
+//  https://github.com/richo-s/PaperToss
+//  https://github.com/happywatch/SKTRings
+//  
+//  Resources:
+//  https://www.techotopia.com/index.php/A_Swift_iOS_8_Sprite_Kit_Collision_Handling_Tutorial
+//  
 //  GameScene.swift
 
 import SpriteKit
