@@ -1,9 +1,19 @@
+//  
+//  Gonzaga Basketball Themed Shoot Out iOS Game
+//  This program dynamically sets up the Game Scene of the basketball game  
+//
+//  CPSC 315-01, Fall 2018
+//  Bulldog Ball
+//  No sources to cite
+//
 //  Tutorials: 
 //  https://github.com/richo-s/PaperToss
 //  https://github.com/happywatch/SKTRings
-//  
 //  Resources:
 //  https://www.techotopia.com/index.php/A_Swift_iOS_8_Sprite_Kit_Collision_Handling_Tutorial
+//
+//  Created by Burgett, Kristen on 10/27/18.
+//  Copyright © 2018 Burgett, Kristen. All rights reserved.
 //  
 //  GameScene.swift
 
